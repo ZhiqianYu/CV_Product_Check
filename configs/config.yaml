@@ -1,0 +1,12 @@
+data:
+  dataset_path: ./datasets/screw
+  image_size:
+  - 256
+  - 256
+model:
+  name: efficientnetv2_s
+  save_path: ./models/files/
+training:
+  batch_size: 32
+  learning_rate: 0.698
+  num_epochs: 10
