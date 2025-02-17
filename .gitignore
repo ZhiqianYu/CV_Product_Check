@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 *.png
+screw/
+./models/files/
+*.pth
+*.onnx
 
 # Distribution / packaging
 .Python
