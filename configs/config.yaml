@@ -1,12 +1,20 @@
+autoencoder:
+  decoder:
+    activation: ReLU
+    kernel_size: 4
+    num_layers: 3
+    use_skip_connection: false
+  latent_channels: 1280
 data:
-  dataset_path: ./datasets/screw
-  image_size:
-  - 256
-  - 256
+  dataset_path: datasets/screw
+  image_size: 512
 model:
   name: efficientnetv2_s
-  save_path: ./models/files/
+  pretrained: false
+  pretrained_path: models/files/efficientnet_v2_s_pre.pth
+  save_path: models/files
 training:
-  batch_size: 32
-  learning_rate: 0.698
-  num_epochs: 10
+  batch_size: 8
+  learning_rate: 0.001
+  loss_function: MSE
+  num_epochs: 20
