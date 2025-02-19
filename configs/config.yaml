@@ -7,14 +7,34 @@ autoencoder:
   latent_channels: 1280
 data:
   dataset_path: datasets/screw
-  image_size: 512
+  image_size: 1024
 model:
   name: efficientnetv2_s
   pretrained: false
   pretrained_path: models/files/efficientnet_v2_s_pre.pth
   save_path: models/files
 training:
-  batch_size: 8
+  batch_size: 32
   learning_rate: 0.001
-  loss_function: MSE
-  num_epochs: 20
+  loss_function: MIXED
+  num_epochs: 50
+
+batch_size_description: |
+  作用: 每次迭代中用于训练模型的样本数量。较小的 batch_size 会导致更频繁的权重更新，而较大的 batch_size 则会减少更新次数。
+  影响: 较小的 batch_size 可能会导致训练过程中的噪声较大，但有助于更快地收敛。较大的 batch_size 则会使训练过程更加稳定，但可能需要更多的内存。
+  推荐范围: 通常在 16 到 512 之间，具体取决于数据集和硬件资源。
+
+learning_rate_description: |
+  作用: 控制每次权重更新的步长。较高的 learning_rate 会使模型参数更新得更快，而较低的 learning_rate 则会使更新更缓慢。
+  影响: 较高的 learning_rate 可能会导致训练过程不稳定，甚至无法收敛。较低的 learning_rate 则可能会导致训练时间过长。
+  推荐范围: 通常在 0.0001 到 0.1 之间，具体取决于模型和数据集。
+
+loss_function_description: |
+  作用: 定义模型的损失函数，用于衡量模型预测值与真实值之间的差距。常见的损失函数包括均方误差（MSE）、交叉熵（Cross-Entropy）等。
+  影响: 不同的损失函数适用于不同类型的任务。例如，MSE 适用于回归任务，而交叉熵适用于分类任务。
+  推荐范围: 根据具体任务选择合适的损失函数。
+
+num_epochs_description: |
+  作用: 训练过程中遍历整个数据集的次数。更多的 num_epochs 可以使模型有更多的机会学习数据特征。
+  影响: 较少的 num_epochs 可能会导致模型欠拟合，而过多的 num_epochs 则可能会导致过拟合。
+  推荐范围: 通常在 10 到 100 之间，具体取决于数据集和模型的复杂度。

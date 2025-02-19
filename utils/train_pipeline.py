@@ -16,7 +16,6 @@ from utils.gpu_info import get_gpu_info
 from datasets.mvtec import load_screw_dataset
 from models.m_autoencoder import build_autoencoder
 
-# 如果需要使用SSIM, 可安装第三方库: pip install pytorch-ssim
 try:
     from pytorch_ssim import SSIM
 except ImportError:

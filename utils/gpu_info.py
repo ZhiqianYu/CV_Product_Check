@@ -24,7 +24,7 @@ def get_gpu_info():
                 gpu_info["温度"] = line.split(":")[-1].strip()
             elif "sclk clock level" in line:
                 gpu_info["频率"] = line.split("(")[-1].split(")")[0].strip()
-            elif "fan speed" in line:
+            elif "Fan Level" in line:
                 gpu_info["风扇"] = line.split(":")[-1].strip() 
             elif "Average Graphics Package Power" in line:
                 gpu_info["功耗"] = line.split(":")[-1].strip()
