@@ -26,11 +26,16 @@ industrial_defect_detection/
 │── requirements.txt   # 依赖库
 │── README.md          # 项目说明
 
-Running Process
+Train Process
 --> main.py 
 --> app.py --> click key[train]
 --> train_pipeline.py --> fun[train_autoencoder] --> load config.yaml 
 --> mvtec.py fun[load_screw_dataset] --> transform_list --> train_loader --> test_loader
 --> train_pipeline.py --> value[model]
---> m_autoencoder.py --> fun[build_autoencoder] --> class[EfficientNetAutoencoder] #
---> train_pipeline.py --> fun[get_loss_function] --> optimizer
+--> m_autoencoder.py --> fun[build_autoencoder] --> class[EfficientNetAutoencoder] #encoder
+--> train_pipeline.py --> fun[get_loss_function] --> optimizer -- train process
+
+Inference Process
+--> main.py --> app.py --> click(upload_file) --> transform --> load model --> encoder --> calc loss
+
+

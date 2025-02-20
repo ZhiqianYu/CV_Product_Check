@@ -1,44 +1,58 @@
-"""
-文件: datasets/mvtec.py
-功能: 加载MVTec或类似结构的数据集. 
-     返回 train_loader, test_loader, 以及类别数num_classes
-被引用: train_pipeline.py -> load_screw_dataset(...)
-"""
-
 import os
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 from torch.utils.data import DataLoader
+from datasets.aug import build_transforms
 
 def load_screw_dataset(dataset_path, image_size, batch_size,
                        augment_config=None, normalize_config=None):
-    """
-    根据给定路径和参数, 构造训练/测试DataLoader
-    你可以在这里过滤只加载 'good' 或者全类别
-    """
     if augment_config is None:
-        augment_config = {"horizontal_flip": True, "rotation": 15}
+        augment_config = {"horizontal_flip": True, "rotation": 15}  # default
+
     if normalize_config is None:
         normalize_config = {"mean":[0.5]*3, "std":[0.5]*3}
 
-    # 这里根据 augment_config 动态添加数据增强操作
-    transform_list = [
-        transforms.Resize(image_size)
-    ]
+    transform_list = [transforms.Resize(image_size)]
 
+    if "rotation" in augment_config and augment_config["rotation"] > 0:
+        rot_deg = augment_config["rotation"]
+        transform_list.append(transforms.RandomRotation(rot_deg))
+
+    if "horizontal_flip" in augment_config and augment_config["horizontal_flip"]:
+        transform_list.append(transforms.RandomHorizontalFlip(p=0.5))
+
+    if "color_jitter" in augment_config:
+        cj = augment_config["color_jitter"]
+        # assume subfields: brightness, contrast, saturation, hue
+        transform_list.append(
+            transforms.ColorJitter(
+                brightness=cj.get("brightness", 0),
+                contrast=cj.get("contrast", 0),
+                saturation=cj.get("saturation", 0),
+                hue=cj.get("hue", 0)
+            )
+        )
+
+    # Then convert to Tensor and normalize
     transform_list.extend([
         transforms.ToTensor(),
         transforms.Normalize(normalize_config["mean"], normalize_config["std"])
     ])
-    
-    data_transform = transforms.Compose(transform_list)
+
+    # 构造 transforms（训练集和测试集可根据需求分开）
+    train_transform = build_transforms(image_size,
+                                       augment_config,
+                                       normalize_config)
+    test_transform  = build_transforms(image_size,
+                                       None,  # 测试集一般不做或做最少的增强
+                                       normalize_config)
 
     # 构造ImageFolder
     train_dir = os.path.join(dataset_path, "train")
     test_dir  = os.path.join(dataset_path, "test")
 
-    train_dataset = datasets.ImageFolder(train_dir, transform=data_transform)
-    test_dataset  = datasets.ImageFolder(test_dir,  transform=data_transform)
+    train_dataset = datasets.ImageFolder(train_dir, transform=train_transform)
+    test_dataset  = datasets.ImageFolder(test_dir,  transform=test_transform)
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size,
                               shuffle=True, num_workers=8)
