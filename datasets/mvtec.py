@@ -45,9 +45,9 @@ def load_screw_dataset(dataset_path, image_size, batch_size,
     test_dataset  = datasets.ImageFolder(test_dir,  transform=data_transform)
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size,
-                              shuffle=True, num_workers=4)
+                              shuffle=True, num_workers=8)
     test_loader  = DataLoader(test_dataset,  batch_size=batch_size,
-                              shuffle=False, num_workers=4)
+                              shuffle=False, num_workers=8)
 
     num_classes = len(train_dataset.classes)
     print(f"[Dataset] 训练集类别: {train_dataset.classes}")

@@ -30,11 +30,11 @@ def run_visualization():
     st.sidebar.header("1. 训练参数设置")
     # 2) 在侧栏中让用户调参
     dataset_path = st.sidebar.text_input("数据集路径", value=config["data"]["dataset_path"])
-    image_size   = st.sidebar.slider("图像大小", 64, 2048, config["data"]["image_size"], step=64)
-    batch_size   = st.sidebar.slider("批次大小", 1, 64, config["training"]["batch_size"])
-    learning_rate= st.sidebar.slider("学习率", 0.0001, 0.1, config["training"]["learning_rate"], step=0.0001)
-    num_epochs   = st.sidebar.slider("训练轮数", 1, 200, config["training"]["num_epochs"])
-    loss_func    = st.sidebar.selectbox("损失函数", ["MSE", "L1", "SSIM", "Mixed"], index=0)
+    image_size   = st.sidebar.slider("图像大小", 64, 1024, config["data"]["image_size"], step=64)
+    batch_size   = st.sidebar.slider("批次大小", 8, 64, config["training"]["batch_size"])
+    learning_rate= st.sidebar.slider("学习率", 0.0001, 0.1, config["training"]["learning_rate"], step=0.0001, format="%.4f")
+    num_epochs   = st.sidebar.slider("训练轮数", 1, 500, config["training"]["num_epochs"])
+    loss_func    = st.sidebar.selectbox("损失函数", ["MSE", "L1", "SSIM", "MIXED"], index=0)
 
     model_name   = st.sidebar.selectbox("EfficientNet版本", ["efficientnetv2_s", "efficientnet_b3"], index=0)
     pretrained   = st.sidebar.checkbox("使用预训练", value=False)
@@ -72,7 +72,7 @@ def run_visualization():
 
     # 4) 推理部分
     st.subheader("2. 推理: 上传图片进行缺陷检测")
-    threshold = st.sidebar.slider("缺陷阈值(越小越敏感)", 0.0, 0.1, 0.02, step=0.001)
+    threshold = st.sidebar.slider("缺陷阈值(越小越敏感)", 0.0, 0.2, 0.001, step=0.001, format="%.3f")
     uploaded_file = st.file_uploader("上传图片", type=["jpg","png","jpeg"])
 
     if uploaded_file:

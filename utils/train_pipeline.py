@@ -36,7 +36,6 @@ def get_loss_function(loss_type="MSE"):
         else:
             raise ValueError("SSIM库未安装, 无法使用SSIM")
     elif loss_type.upper() == "MIXED":
-        # 示例: 0.5*MSE + 0.5*(1 - SSIM)
         if SSIM is None:
             raise ValueError("SSIM库未安装, 无法使用Mixed中SSIM")
         mse_loss = nn.MSELoss()
@@ -47,6 +46,9 @@ def get_loss_function(loss_type="MSE"):
         return mixed_loss
     else:
         return nn.MSELoss()  # 默认用MSE
+    
+def object_extraction(image):
+
 
 def train_autoencoder(config_path="configs/config.yaml"):
     """
