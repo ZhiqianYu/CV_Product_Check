@@ -25,16 +25,12 @@ def load_screw_dataset(dataset_path, image_size, batch_size,
     transform_list = [
         transforms.Resize(image_size)
     ]
-    # 简化写法, 你可按需加 RandomHorizontalFlip / RandomRotation 等
-    # if augment_config["horizontal_flip"]:
-    #     transform_list.append(transforms.RandomHorizontalFlip())
-    # if augment_config["rotation"] > 0:
-    #     transform_list.append(transforms.RandomRotation(augment_config["rotation"]))
 
     transform_list.extend([
         transforms.ToTensor(),
         transforms.Normalize(normalize_config["mean"], normalize_config["std"])
     ])
+    
     data_transform = transforms.Compose(transform_list)
 
     # 构造ImageFolder

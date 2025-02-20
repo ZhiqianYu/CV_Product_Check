@@ -46,9 +46,6 @@ def get_loss_function(loss_type="MSE"):
         return mixed_loss
     else:
         return nn.MSELoss()  # 默认用MSE
-    
-def object_extraction(image):
-
 
 def train_autoencoder(config_path="configs/config.yaml"):
     """
