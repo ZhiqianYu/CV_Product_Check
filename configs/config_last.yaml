@@ -1,11 +1,11 @@
 augment:
   color_jitter:
-    brightness: 0.2
-    contrast: 0.2
-    hue: 0.1
-    saturation: 0.2
+    brightness: 0.3
+    contrast: 0.3
+    hue: 0.2
+    saturation: 0.3
   horizontal_flip: true
-  rotation: 30
+  rotation: 0
 autoencoder:
   decoder:
     activation: ReLU
@@ -16,6 +16,14 @@ autoencoder:
 data:
   dataset_path: datasets/screw
   image_size: 512
+  use_masked: true
+mask:
+  blur_ksize: 15
+  dataset_path: datasets/screw/test
+  mask_path: datasets/screw/test/seg_mask
+  min_contour_area: 1
+  thresh_method: binary
+  thresh_val: 183
 model:
   name: efficientnetv2_s
   pretrained: false
@@ -23,6 +31,6 @@ model:
   save_path: models/files
 training:
   batch_size: 20
-  learning_rate: 0.0001
+  learning_rate: 0.0005
   loss_function: MSE
-  num_epochs: 65
+  num_epochs: 90

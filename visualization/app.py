@@ -11,6 +11,8 @@ from torchvision import transforms
 from utils.diff_map import compute_diff_map
 from utils.gpu_info import get_gpu_info
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes, mark_inset
+from datasets.mask_unet import generate_masks
+from datasets.mask_unet import remove_bg
 
 def load_config(config_path="configs/config.yaml"):
     with open(config_path, "r") as f:
@@ -23,34 +25,73 @@ def save_config(config, config_path="configs/config.yaml"):
 def run_visualization():
     st.title("缺陷检测系统 - 自编码器")
 
-    # 1) 读取原有config
+    # 读取原有config
     config_path = "configs/config.yaml"
     config_last_path = "configs/config_last.yaml"
     config = load_config(config_path)
 
     st.sidebar.header("训练参数设置")
-    # 2) 在侧栏中让用户调参
+    # 在侧栏中让用户调参
     dataset_path = st.sidebar.text_input("数据集路径", value=config["data"]["dataset_path"])
     image_size   = st.sidebar.slider("图像大小", 64, 1024, config["data"]["image_size"], step=64)
     batch_size   = st.sidebar.slider("批次大小", 8, 64, config["training"]["batch_size"])
     learning_rate= st.sidebar.slider("学习率", 0.0001, 0.1, config["training"]["learning_rate"], step=0.0001, format="%.4f")
     num_epochs   = st.sidebar.slider("训练轮数", 1, 500, config["training"]["num_epochs"])
     loss_func    = st.sidebar.selectbox("损失函数", ["MSE", "L1", "SSIM", "MIXED"], index=0)
-
-    model_name   = st.sidebar.selectbox("EfficientNet版本", ["efficientnetv2_s", "efficientnet_b3"], index=0)
+    model_name   = st.sidebar.selectbox("Train Model", ["efficientnetv2_s", "efficientnet_b3"], index=0)
     pretrained   = st.sidebar.checkbox("使用预训练", value=False)
 
     # Decoder可调
+    st.sidebar.header("Decoder设置")
     decoder_layers    = st.sidebar.slider("Decoder层数", 1, 5, config["autoencoder"]["decoder"]["num_layers"])
     decoder_kernelsz  = st.sidebar.selectbox("卷积核大小", [3, 4, 5], index=1)  # 默认4
     decoder_activation= st.sidebar.selectbox("激活函数", ["ReLU", "LeakyReLU", "ELU"], index=0)
     use_skip          = st.sidebar.checkbox("使用skip-connection", value=False)
 
-    # 3) 当点击 "开始训练" 时
-    if st.sidebar.button("开始训练"):
+    # Mask分割可调
+    st.sidebar.header("Mask分割设置")
+    blur_ksize = st.sidebar.slider("模糊核大小", 1, 15, config["mask"]["blur_ksize"])
+    thresh_method = st.sidebar.selectbox("二值化方法", ["binary", "binary_inv"], index=0)
+    thresh_val = st.sidebar.slider("阈值", 0, 255, config["mask"]["thresh_val"])
+    min_contour_area = st.sidebar.slider("最小轮廓面积", 1, 1000, config["mask"]["min_contour_area"])
+
+    use_masked_data = st.sidebar.checkbox("使用分割后的数据？", value=False)
+    columns = st.sidebar.columns(2)
+    with columns[0]:
+        segment_button = st.button("分割数据")
+    with columns[1]:
+        start_train_button = st.button("开始训练")
+    
+
+    # If user clicks 分割数据
+    if segment_button:
+        # Update the config fields
+        mask_path = os.path.join(dataset_path, "seg_mask")
+        config["mask"]["mask_path"] = mask_path
+        config["mask"]["blur_ksize"] = blur_ksize
+        config["mask"]["thresh_method"] = thresh_method
+        config["mask"]["thresh_val"] = thresh_val
+        config["mask"]["min_contour_area"] = min_contour_area
+        config["data"]["dataset_path"] = dataset_path  # if needed
+
+        save_config(config, config_last_path)
+        generate_masks(
+            dataset_path=dataset_path,
+            mask_path=mask_path,
+            blur_ksize=blur_ksize,
+            thresh_method=thresh_method,
+            thresh_val=thresh_val,
+            min_contour_area=min_contour_area
+        )
+
+        st.success("分割完成！已生成mask文件")
+
+    # 当点击 "开始训练" 时
+    if start_train_button:
         # 更新配置
         config["data"]["dataset_path"] = dataset_path
         config["data"]["image_size"] = image_size
+        config["data"]["use_masked"]   = use_masked_data
         config["training"]["batch_size"] = batch_size
         config["training"]["learning_rate"] = learning_rate
         config["training"]["num_epochs"] = num_epochs
@@ -178,7 +219,9 @@ def run_visualization():
         auto_model.eval()
 
         # 图像预处理
-        image = Image.open(uploaded_file).convert("RGB")
+        # remove background
+        loaded_img = Image.open(uploaded_file).convert("RGB")
+        image = remove_bg(loaded_img)
         tfms = transforms.Compose([
             transforms.Resize((512, 512)),
             transforms.ToTensor(),

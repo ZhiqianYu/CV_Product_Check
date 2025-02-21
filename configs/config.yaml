@@ -8,6 +8,14 @@ autoencoder:
 data:
   dataset_path: datasets/screw
   image_size: 512
+  use_masked: False
+mask:
+  dataset_path: datasets/screw/test
+  mask_path: datasets/screw/test/seg_mask
+  blur_ksize: 15
+  thresh_method: binary
+  thresh_val: 183
+  min_contour_area: 1
 model:
   name: efficientnetv2_s
   pretrained: false

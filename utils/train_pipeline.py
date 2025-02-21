@@ -55,6 +55,7 @@ def train_autoencoder(config_path="configs/config.yaml", progress_callback=None)
     # 1) 从 config 中解析相关参数
     dataset_path = config["data"]["dataset_path"]
     image_size   = config["data"]["image_size"]# 若存在回调函数, 则把进度、时间、loss等信息传给app.py
+    use_masked   = config["data"].get("use_masked", False)
     batch_size   = config["training"]["batch_size"]
     lr           = config["training"]["learning_rate"]
     num_epochs   = config["training"]["num_epochs"]
@@ -70,17 +71,30 @@ def train_autoencoder(config_path="configs/config.yaml", progress_callback=None)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # 2) 加载数据
-    augment_conf = config.get("augment", None)
-    train_loader, _, _ = load_screw_dataset(
-        dataset_path=dataset_path,
-        image_size=(image_size, image_size),
-        batch_size=batch_size,
-        augment_config=augment_conf,
-        normalize_config={"mean": [0.5]*3, "std":[0.5]*3}
-    )
-
-    # 3) 构建Autoencoder
+    if use_masked:
+        print("[INFO] Using masked dataset for training.")
+        augment_conf = config.get("augment", None)
+        mask_dir  = os.path.join(dataset_path, "seg_mask/")
+        train_masked_dir = mask_dir
+        train_loader, _, _ = load_screw_dataset(
+            dataset_path=train_masked_dir,
+            image_size=(image_size, image_size),
+            batch_size=batch_size,
+            augment_config=augment_conf,
+            normalize_config={"mean": [0.5]*3, "std":[0.5]*3}
+        )        
+    else:
+        print("[INFO] Using original dataset (no mask).")
+        augment_conf = config.get("augment", None)
+        train_loader, _, _ = load_screw_dataset(
+            dataset_path=dataset_path,
+            image_size=(image_size, image_size),
+            batch_size=batch_size,
+            augment_config=augment_conf,
+            normalize_config={"mean": [0.5]*3, "std":[0.5]*3}
+        )
+  
+    # 构建Autoencoder
     model = build_autoencoder(
         model_name=model_name,
         pretrained=pretrained,
